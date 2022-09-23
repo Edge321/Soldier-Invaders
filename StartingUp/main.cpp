@@ -2,6 +2,7 @@
 #include "Background.h"
 #include "Character.h"
 #include "Player.h"
+#include "Projectile.h"
 
 /*
 The game to make: can guide your missile, space invaders-like
@@ -12,6 +13,8 @@ sf::VideoMode vm(windowSize.x, windowSize.y);
 sf::RenderWindow window(vm, "Hello Everybody!", sf::Style::Default);
 
 int frameLimit = 60;
+
+void shoot();
 
 Background bg;
 Background sky;
@@ -48,6 +51,8 @@ void updateInput() {
 				hero.setMovement(heroMovement);
 			else if (event.key.code == sf::Keyboard::Left && canHeroMove)
 				hero.setMovement(-heroMovement);
+			if (event.key.code == sf::Keyboard::Space)
+				shoot();
 		}
 		else {
 			hero.setMovement(0);
@@ -81,4 +86,8 @@ int main() {
 	}
 
 	return 0;
+}
+
+void shoot() {
+	Projectile* projectile = new Projectile();
 }
