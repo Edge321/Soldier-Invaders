@@ -361,3 +361,14 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+# SFML files
+*.dll
+
+# References files
+Enemy.h
+Hero.h
+Rocket.h
+Enemy.cpp
+Hero.cpp
+Source.cpp
