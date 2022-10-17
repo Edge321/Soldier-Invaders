@@ -7,6 +7,10 @@ public:
 	~Projectile();
 
 	void update(float dt);
-	void rotate(float degreeRotation, float angleChange);
+	void rotate(float angleChange);
+	void setProjectileSpeed(float projectileSpeed);
+
+private:
+	float m_projectileSpeed = 100.0f;
 };
 

@@ -7,6 +7,7 @@ public:
 	Character();
 	~Character();
 
+	//Sets the basic initialization for a character
 	void init(std::string texturePath, sf::Vector2f position);
 	void changeRotation(float rotation);
 	void update(float dt);
