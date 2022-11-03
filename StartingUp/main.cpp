@@ -14,7 +14,6 @@ sf::RenderWindow window(vm, "Hello Everybody!", sf::Style::Default);
 
 int frameLimit = 60;
 
-//Shmovement
 void movement(float xDirection, float dt);
 void shoot();
 
@@ -25,16 +24,14 @@ int xOffset = 900;
 int yOffset = 75;
 float heroRotation = 270.0f;
 float heroMovement = 250.0f;
-bool canHeroMove = true;
 
 Player hero;
 
-Projectile* projectile;
+Projectile projectile;
 sf::Vector2f projectileOffest(10.0f, -50.0f);
 float rocketRotation = 270.0f;
 float rotationSpeed = 500.0f;
-float rocketSpeed = 100.0f;
-bool canRocketMove = false;
+float rocketSpeed = 200.0f;
 
 void init() {
 	sf::Vector2f heroPosition(window.getSize().x - xOffset, window.getSize().y - yOffset);
@@ -43,14 +40,15 @@ void init() {
 	sky.init("Assets/Graphics/sky.png");
 	hero.init("Assets/Graphics/hero.png", heroPosition);
 	hero.changeRotation(heroRotation);
+	projectile.disabled();
 }
 
 void draw() {
 	window.draw(sky.getSprite());
 	window.draw(bg.getSprite());
 	window.draw(hero.getSprite());
-	if (projectile != nullptr)
-		window.draw(projectile->getSprite());
+	if (projectile.getStatus())
+		window.draw(projectile.getSprite());
 }
 
 void updateInput(float dt) {
@@ -79,9 +77,15 @@ void updateInput(float dt) {
 
 void update(float dt) {
 	hero.update(dt);
-	//Prevents program from crashing if rocket does not exist
-	if (projectile != nullptr)
-		projectile->update(dt);
+
+	if(projectile.getStatus()) {
+		projectile.update(dt);
+		if (projectile.getOutofBounds()) {
+			projectile.disabled();
+			hero.setHeroMove(true);
+			hero.enabled();
+		}
+	}
 }
 
 int main() {
@@ -101,26 +105,24 @@ int main() {
 		window.display();
 	}
 
-	delete(projectile);
-
 	return 0;
 }
 
 void movement(float keyDirection, float dt) {
-	if (canHeroMove)
+	if (hero.getHeroMove())
 		hero.setMovement(heroMovement * keyDirection);
 	else
-		projectile->rotate(rocketRotation * keyDirection * dt);
+		projectile.rotate(rocketRotation * keyDirection * dt);
 }
 
 void shoot() {
-	projectile = new Projectile();
+	projectile = Projectile();
 	sf::Vector2f projectilePosition(hero.getSprite().getPosition().x + projectileOffest.x,
 		hero.getSprite().getPosition().y + projectileOffest.y);
 
-	projectile->init("Assets/Graphics/rocket.png", projectilePosition);
-	projectile->changeRotation(rocketRotation);
-	projectile->setProjectileSpeed(rocketSpeed);
-	canHeroMove = false;
+	projectile.init("Assets/Graphics/rocket.png", projectilePosition);
+	projectile.changeRotation(rocketRotation);
+	projectile.setProjectileSpeed(rocketSpeed);
+	hero.setHeroMove(false);
 	hero.disabled();
 }
