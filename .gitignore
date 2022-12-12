@@ -363,12 +363,6 @@ MigrationBackup/
 FodyWeavers.xsd
 
 # SFML files
-*.dll
+StartingUp/*.dll
 
 # References files
-Enemy.h
-Hero.h
-Rocket.h
-Enemy.cpp
-Hero.cpp
-Source.cpp
