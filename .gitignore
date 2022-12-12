@@ -363,6 +363,17 @@ MigrationBackup/
 FodyWeavers.xsd
 
 # SFML files
-StartingUp/sfml-audio-2.dll
+StartingUp/*.dll
+StartingUp/SFML-2.5.1/
+
+#Visual Studio Files
+StartingUp/x64/
+StartingUp/*.vcxproj
+StartingUp/*.vcxproj.filters
+StartingUp/*.vcxproj.user
+StartingUp/*.aps
+StartingUp/*.rc
+StartingUp/resource.h
 
 # References files
+StartingUp/References/
