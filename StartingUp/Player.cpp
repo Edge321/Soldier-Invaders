@@ -1,13 +1,17 @@
 #include "Player.h"
 
-void Player::setMovement(float movement) {
-	m_movement = movement;
-	//printf("%lf\n", m_movement);
-}
-
 void Player::update(float dt) {
 	sf::Vector2f currentPosition(m_sprite.getPosition());
 	m_sprite.setPosition(currentPosition.x + (m_movement * dt), currentPosition.y);
+}
+/**
+ * @brief Sets the movement for where the player will go. Default is moving to the right
+ * 
+ * @param movement Movement in x-direction
+ */
+void Player::setMovement(float movement) {
+	m_movement = movement;
+	//printf("%lf\n", m_movement);
 }
 /**
 * @brief Makes player in disabled state

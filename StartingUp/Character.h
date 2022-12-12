@@ -1,3 +1,11 @@
+/*********************************************************************
+ * @file   Character.h
+ * @brief  Base class for defining any object in-game
+ * 
+ * @author Edge321
+ * @date   December 2022
+ *********************************************************************/
+
 #include <SFML/Graphics.hpp>
 
 #pragma once
@@ -7,10 +15,9 @@ public:
 	Character();
 	~Character();
 
-	//Sets the basic initialization for a character
+	//Does the basic initialization of a character
 	void init(std::string texturePath, sf::Vector2f position);
 	void changeRotation(float rotation);
-	void update(float dt);
 	sf::Sprite getSprite();
 
 protected:
