@@ -363,6 +363,6 @@ MigrationBackup/
 FodyWeavers.xsd
 
 # SFML files
-StartingUp/*.dll
+StartingUp/sfml-audio-2.dll
 
 # References files
