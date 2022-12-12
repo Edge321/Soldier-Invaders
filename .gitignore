@@ -364,10 +364,10 @@ FodyWeavers.xsd
 
 # SFML files
 StartingUp/*.dll
-StartingUp/SFML-2.5.1
+StartingUp/SFML-2.5.1/
 
 #Visual Studio Files
-StartingUp/x64
+StartingUp/x64/
 StartingUp/*.vcxproj
 StartingUp/*.vcxproj.filters
 StartingUp/*.vcxproj.user
@@ -376,4 +376,4 @@ StartingUp/*.rc
 StartingUp/resource.h
 
 # References files
-StartingUp/References
+StartingUp/References/
