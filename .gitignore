@@ -377,3 +377,9 @@ StartingUp/resource.h
 
 # References files
 StartingUp/References/
+/StartingUp/Enemy.cpp
+/StartingUp/Source.cpp
+/StartingUp/Rocket.h
+/StartingUp/Rocket.cpp
+/StartingUp/Enemy.h
+/Backup_StartingUp.rar
