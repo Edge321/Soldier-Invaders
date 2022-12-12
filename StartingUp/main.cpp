@@ -1,21 +1,25 @@
-#include <SFML/Graphics.hpp>
 #include "Background.h"
 #include "Character.h"
 #include "Player.h"
 #include "Projectile.h"
+#include "Soldier.h"
+#include "Bindings.h"
+#include <iostream>
 
 /*
 The game to make: can guide your missile, space invaders-like
 */
+
+void movement(float xDirection, float dt);
+void shoot();
+
+Bindings binds;
 
 sf::Vector2i windowSize(1024, 768);
 sf::VideoMode vm(windowSize.x, windowSize.y);
 sf::RenderWindow window(vm, "Hello Everybody!", sf::Style::Default);
 
 int frameLimit = 60;
-
-void movement(float xDirection, float dt);
-void shoot();
 
 Background bg;
 Background sky;
@@ -29,9 +33,19 @@ Player hero;
 
 Projectile projectile;
 sf::Vector2f projectileOffest(10.0f, -50.0f);
-float rocketRotation = 270.0f;
-float rotationSpeed = 500.0f;
-float rocketSpeed = 200.0f;
+float startingRocketRotation = 270.0f;
+float rotationSpeed = 5.0f;
+float rocketSpeed = 150.0f;
+
+Soldier soldier;
+sf::Vector2f soldierPosition(1024 / 2, 100);
+float soldierSpeed = 200.0f;
+
+void initBindings() {
+	binds.storeBinding("Shoot", sf::Keyboard::Space);
+	binds.storeBinding("Left", sf::Keyboard::A);
+	binds.storeBinding("Right", sf::Keyboard::D);
+}
 
 void init() {
 	sf::Vector2f heroPosition(window.getSize().x - xOffset, window.getSize().y - yOffset);
@@ -41,6 +55,8 @@ void init() {
 	hero.init("Assets/Graphics/hero.png", heroPosition);
 	hero.changeRotation(heroRotation);
 	projectile.disabled();
+	soldier.init("Assets/Graphics/enemy.png", soldierPosition);
+	soldier.setSpeed(soldierSpeed);
 }
 
 void draw() {
@@ -49,6 +65,7 @@ void draw() {
 	window.draw(hero.getSprite());
 	if (projectile.getStatus())
 		window.draw(projectile.getSprite());
+	window.draw(soldier.getSprite());
 }
 
 void updateInput(float dt) {
@@ -56,19 +73,23 @@ void updateInput(float dt) {
 	int xDirection = 1;
 
 	while (window.pollEvent(event)) {
-		if (event.type == sf::Event::KeyPressed) {
-			if (event.key.code == sf::Keyboard::Right)
-				movement(xDirection, dt);
-			if (event.key.code == sf::Keyboard::Left)
-				movement(-xDirection, dt);
-			if (event.key.code == sf::Keyboard::Space)
-				shoot();
+		//Player bindings
+		if (binds.validBinding("Shoot", event)) {
+			shoot();
+			printf("Shoot!\n");
 		}
-		//Bug: character freezes if player quickly alternating left and right arrow keys
+		if (binds.validBinding("Left", event)) {
+			movement(-xDirection, dt);
+			printf("Left!\n");
+		}
+		else if (binds.validBinding("Right", event)) {
+			movement(xDirection, dt);
+			printf("Right!\n");
+		}
+
 		if (event.type == sf::Event::KeyReleased) {
 			hero.setMovement(0);
 		}
-
 		if (event.key.code == sf::Keyboard::Escape || event.type == sf::Event::Closed) {
 			window.close();
 		}
@@ -77,6 +98,7 @@ void updateInput(float dt) {
 
 void update(float dt) {
 	hero.update(dt);
+	soldier.update(dt);
 
 	if(projectile.getStatus()) {
 		projectile.update(dt);
@@ -92,6 +114,7 @@ int main() {
 	sf::Clock clock;
 	window.setFramerateLimit(frameLimit);
 
+	initBindings();
 	init();
 
 	while (window.isOpen()) {
@@ -107,21 +130,28 @@ int main() {
 
 	return 0;
 }
-
+/**
+ * @brief Decides movement based on if the player/projectile is active
+ * 
+ * @param keyDirection negative number to go left, positive number to go right
+ * @param dt Delta time
+ */
 void movement(float keyDirection, float dt) {
 	if (hero.getHeroMove())
 		hero.setMovement(heroMovement * keyDirection);
 	else
-		projectile.rotate(rocketRotation * keyDirection * dt);
+		projectile.rotate(rotationSpeed * keyDirection);
 }
-
+/**
+ * @brief Creates a projectile object which the player will control manually
+ */
 void shoot() {
 	projectile = Projectile();
 	sf::Vector2f projectilePosition(hero.getSprite().getPosition().x + projectileOffest.x,
 		hero.getSprite().getPosition().y + projectileOffest.y);
 
 	projectile.init("Assets/Graphics/rocket.png", projectilePosition);
-	projectile.changeRotation(rocketRotation);
+	projectile.changeRotation(startingRocketRotation);
 	projectile.setProjectileSpeed(rocketSpeed);
 	hero.setHeroMove(false);
 	hero.disabled();

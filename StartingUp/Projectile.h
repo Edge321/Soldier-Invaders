@@ -1,3 +1,11 @@
+/*********************************************************************
+ * @file   Projectile.h
+ * @brief  Projectile that the player will be shooting
+ * 
+ * @author Edge321
+ * @date   December 2022
+ *********************************************************************/
+
 #include "Character.h"
 #pragma once
 class Projectile : public Character
@@ -16,9 +24,7 @@ public:
 		return m_outOfBounds;
 	}
 
-	/**
-	* @brief Is projectile currently moving in the window?
-	*/
+	//Is the object currently active in the window?
 	bool getStatus() {
 		return m_status;
 	}

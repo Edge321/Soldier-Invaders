@@ -1,9 +1,17 @@
+/*********************************************************************
+ * @file   Player.h
+ * @brief  What the player will be controlling
+ * 
+ * @author Edge321
+ * @date   December 2022
+ *********************************************************************/
+
 #include "Character.h"
 
 class Player : public Character {
 public:
-	void setMovement(float movement);
 	void update(float dt);
+	void setMovement(float movement);
 	void disabled();
 	void enabled();
 
