@@ -15,7 +15,7 @@ public:
 	~Projectile();
 
 	void update(float dt);
-	void rotate(float angleChange);
+	void setRotater(float angleChange);
 	void setProjectileSpeed(float projectileSpeed);
 	void disabled();
 	void enabled();
@@ -31,6 +31,7 @@ public:
 
 private:
 	float m_projectileSpeed = 100.0f;
+	float m_angleChange = 0;
 	bool m_outOfBounds = false;
 	bool m_status = true; 
 };

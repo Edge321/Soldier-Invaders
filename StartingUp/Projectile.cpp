@@ -9,6 +9,8 @@ void Projectile::update(float dt) {
 	const float pi = 3.14159265f;
 	sf::Vector2i windowSize(1024, 768);
 
+	m_sprite.rotate(m_angleChange * dt);
+
 	//Converting degrees to radians here
 	float x = cos(m_sprite.getRotation() * pi / 180.0f);
 	float y = sin(m_sprite.getRotation() * pi / 180.0f);
@@ -22,8 +24,10 @@ void Projectile::update(float dt) {
 /**
  * @brief Rotates the projectile
  */
-void Projectile::rotate(float angleChange) {
-	m_sprite.rotate(angleChange);
+void Projectile::setRotater(float angleChange) {
+	//m_sprite.rotate(angleChange * dt);
+	m_angleChange = angleChange;
+	//m_sprite.setRotation(m_sprite.getRotation() + (angleChange * dt));
 }
 /**
  * @brief Sets how fast the projectile will move
