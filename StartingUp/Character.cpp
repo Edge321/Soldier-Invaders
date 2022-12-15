@@ -26,10 +26,27 @@ void Character::changeRotation(float rotation) {
 	m_sprite.setRotation(rotation);
 }
 /**
+ * @brief Sets the scale of the sprite. (1.0f, 1.0f) is the default
+ */
+void Character::setScale(sf::Vector2f scale) {
+	m_sprite.setScale(scale);
+}
+/**
  * @brief Gets the sprite of the character
  * 
  * @return sf::Sprite
  */
 sf::Sprite Character::getSprite() {
 	return m_sprite;
+}
+/**
+ * @brief Returns the size of the sprite according to its scale
+ * 
+ * @return Vector2f size
+ */
+sf::Vector2f Character::getSize() {
+	sf::Vector2f spriteScale = m_sprite.getScale();
+	sf::Vector2u spriteSize = m_sprite.getTexture()->getSize();
+
+	return sf::Vector2f(spriteSize.x * spriteScale.x, spriteSize.y * spriteScale.y);
 }

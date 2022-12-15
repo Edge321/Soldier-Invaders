@@ -4,10 +4,16 @@
 #include "Projectile.h"
 #include "Soldier.h"
 #include "Bindings.h"
+#include "Barrier.h"
 #include <iostream>
 
 /*
 The game to make: can guide your missile, space invaders-like
+
+Ideas:
+Make the rocket have a limited time active
+Player can explode rocket before the limited time so they can move again
+Player is able to kill themselves with their rocket
 */
 
 void movement(float xDirection);
@@ -15,34 +21,35 @@ void shoot();
 bool checkCollision(sf::Sprite sprite1, sf::Sprite sprite2);
 
 Bindings binds;
-
+/* Window parameters */
 sf::Vector2i windowSize(1024, 768);
 sf::VideoMode vm(windowSize.x, windowSize.y);
-sf::RenderWindow window(vm, "Hello Everybody!", sf::Style::Default);
-
+sf::RenderWindow window(vm, "Soldier Invaders", sf::Style::Default);
 int frameLimit = 60;
 
 Background bg;
 Background sky;
-
+/* Player parameters */
+Player hero;
 int xOffset = 900;
 int yOffset = 75;
 float heroRotation = 270.0f;
 float heroMovement = 250.0f;
-
-Player hero;
-
+/* Projectile parameters */
 Projectile projectile;
-sf::Vector2f projectileOffest(10.0f, -50.0f);
+sf::Vector2f projectileOffest(6.0f, -35.0f);
 float startingRocketRotation = 270.0f;
-float rotationSpeed = 200.0f;
+float rotationSpeed = 160.0f;
 float rocketSpeed = 150.0f;
-
+/* Soldier parameters */
 Soldier soldier;
 sf::Vector2f soldierPosition(1024 / 2, 100);
 float soldierSpeed = 200.0f;
-
-Character square;
+/* Barrier parameters */
+Barrier barriers[6];
+int xBarrierOffset = 960;
+int yBarrierOffset = 170;
+int spacing = 180;
 
 void initBindings() {
 	binds.storeBinding("Shoot", sf::Keyboard::Space);
@@ -56,11 +63,21 @@ void init() {
 	bg.init("Assets/Graphics/bg.png");
 	sky.init("Assets/Graphics/sky.png");
 	hero.init("Assets/Graphics/hero.png", heroPosition);
+	hero.setScale(sf::Vector2f(0.5f, 0.5f));
 	hero.changeRotation(heroRotation);
 	projectile.disabled();
 	soldier.init("Assets/Graphics/enemy.png", soldierPosition);
 	soldier.setSpeed(soldierSpeed);
-	
+	soldier.changeRotation(270.0f);
+	soldier.setScale(sf::Vector2f(0.8f, 0.8f));
+
+	int length = sizeof(barriers) / sizeof(barriers[0]);
+	sf::Vector2f barrierSize(90.0f, 30.0f);
+
+	for (int i = 0; i < length; i++) {
+		sf::Vector2f startPosition(window.getSize().x - xBarrierOffset + (i * spacing), window.getSize().y - yBarrierOffset);
+		barriers[i].init(barrierSize, startPosition, sf::Color::Red);
+	}
 }
 
 void draw() {
@@ -70,6 +87,12 @@ void draw() {
 	if (projectile.getStatus())
 		window.draw(projectile.getSprite());
 	window.draw(soldier.getSprite());
+
+	int length = sizeof(barriers) / sizeof(barriers[0]);
+	//window.draw(barriers[0].getRectangle());
+	for (int i = 0; i < length; i++) {
+		window.draw(barriers[i].getRectangle());
+	}
 }
 
 void updateInput(float dt) {
@@ -107,6 +130,7 @@ void update(float dt) {
 
 	if(projectile.getStatus()) {
 		projectile.update(dt);
+		hero.setMovement(0);
 		if (projectile.getOutofBounds()) {
 			projectile.disabled();
 			hero.setHeroMove(true);
@@ -152,11 +176,6 @@ void movement(float keyDirection) {
 		projectile.setRotater(rotationSpeed * keyDirection);
 	else
 		hero.setMovement(heroMovement * keyDirection);
-	
-	//if (hero.getHeroMove())
-	//	hero.setMovement(heroMovement * keyDirection);
-	//else
-	//	projectile.rotate(rotationSpeed * keyDirection);
 }
 /**
  * @brief Creates a projectile object which the player will control manually

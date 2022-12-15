@@ -18,6 +18,8 @@ public:
 	//Does the basic initialization of a character
 	void init(std::string texturePath, sf::Vector2f position);
 	void changeRotation(float rotation);
+	void setScale(sf::Vector2f scale);
+	sf::Vector2f getSize();
 	sf::Sprite getSprite();
 
 protected:

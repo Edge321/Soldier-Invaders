@@ -39,8 +39,13 @@ void Player::enabled() {
 void limitArea(sf::Sprite *sprite) {
 	sf::Vector2i windowSize(1024, 768);
 
-	if (sprite->getPosition().x < sprite->getTexture()->getSize().x)
-		sprite->setPosition(sprite->getTexture()->getSize().x, sprite->getPosition().y);
-	else if (sprite->getPosition().x > windowSize.x - sprite->getTexture()->getSize().x)
-		sprite->setPosition(windowSize.x - sprite->getTexture()->getSize().x, sprite->getPosition().y);
+	sf::Vector2u spriteSize = sprite->getTexture()->getSize();
+	sf::Vector2f spriteScale = sprite->getScale();
+	sf::Vector2f realSpriteSize = sf::Vector2f(spriteSize.x * spriteScale.x, 
+												spriteSize.y * spriteScale.y);
+
+	if (sprite->getPosition().x < realSpriteSize.x)
+		sprite->setPosition(realSpriteSize.x, sprite->getPosition().y);
+	else if (sprite->getPosition().x > windowSize.x - realSpriteSize.x)
+		sprite->setPosition(windowSize.x - realSpriteSize.x, sprite->getPosition().y);
 }
