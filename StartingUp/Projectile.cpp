@@ -25,9 +25,7 @@ void Projectile::update(float dt) {
  * @brief Rotates the projectile
  */
 void Projectile::setRotater(float angleChange) {
-	//m_sprite.rotate(angleChange * dt);
 	m_angleChange = angleChange;
-	//m_sprite.setRotation(m_sprite.getRotation() + (angleChange * dt));
 }
 /**
  * @brief Sets how fast the projectile will move

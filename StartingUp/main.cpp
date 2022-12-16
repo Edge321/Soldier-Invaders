@@ -18,7 +18,10 @@ Player is able to kill themselves with their rocket
 
 void movement(float xDirection);
 void shoot();
+void projectileDestroyed();
 bool checkCollision(sf::Sprite sprite1, sf::Sprite sprite2);
+bool checkCollision(sf::Sprite sprite1, sf::FloatRect shape2);
+void shutdown();
 
 Bindings binds;
 /* Window parameters */
@@ -40,16 +43,20 @@ Projectile projectile;
 sf::Vector2f projectileOffest(6.0f, -35.0f);
 float startingRocketRotation = 270.0f;
 float rotationSpeed = 160.0f;
-float rocketSpeed = 150.0f;
+float rocketSpeed = 350.0f;
 /* Soldier parameters */
 Soldier soldier;
 sf::Vector2f soldierPosition(1024 / 2, 100);
 float soldierSpeed = 200.0f;
+float soldierRotation = 270.0f;
 /* Barrier parameters */
-Barrier barriers[6];
+std::vector<Barrier*> barriers;
+sf::Vector2f barrierSize(80.0f, 30.0f);
+int totalBarriers = 6;
 int xBarrierOffset = 960;
 int yBarrierOffset = 170;
 int spacing = 180;
+int barrierHealth = 8;
 
 void initBindings() {
 	binds.storeBinding("Shoot", sf::Keyboard::Space);
@@ -68,15 +75,17 @@ void init() {
 	projectile.disabled();
 	soldier.init("Assets/Graphics/enemy.png", soldierPosition);
 	soldier.setSpeed(soldierSpeed);
-	soldier.changeRotation(270.0f);
+	soldier.changeRotation(soldierRotation);
 	soldier.setScale(sf::Vector2f(0.8f, 0.8f));
 
-	int length = sizeof(barriers) / sizeof(barriers[0]);
-	sf::Vector2f barrierSize(90.0f, 30.0f);
+	for (int i = 0; i < totalBarriers; i++) {
+		barriers.push_back(new Barrier());
+	}
 
-	for (int i = 0; i < length; i++) {
-		sf::Vector2f startPosition(window.getSize().x - xBarrierOffset + (i * spacing), window.getSize().y - yBarrierOffset);
-		barriers[i].init(barrierSize, startPosition, sf::Color::Red);
+	for (int i = 0; i < barriers.size(); i++) {
+		sf::Vector2f startPosition(window.getSize().x - xBarrierOffset + (i * spacing), 
+									window.getSize().y - yBarrierOffset);
+		barriers[i]->init(barrierSize, startPosition, sf::Color::Red, barrierHealth);
 	}
 }
 
@@ -88,10 +97,9 @@ void draw() {
 		window.draw(projectile.getSprite());
 	window.draw(soldier.getSprite());
 
-	int length = sizeof(barriers) / sizeof(barriers[0]);
-	//window.draw(barriers[0].getRectangle());
-	for (int i = 0; i < length; i++) {
-		window.draw(barriers[i].getRectangle());
+	for (int i = 0; i < barriers.size(); i++) {
+		barriers[i]->setColor();
+		window.draw(barriers[i]->getRectangle());
 	}
 }
 
@@ -132,16 +140,29 @@ void update(float dt) {
 		projectile.update(dt);
 		hero.setMovement(0);
 		if (projectile.getOutofBounds()) {
-			projectile.disabled();
-			hero.setHeroMove(true);
-			hero.enabled();
+			projectileDestroyed();
 		}
 		//If projectile has collided with enemy soldier
 		if (checkCollision(projectile.getSprite(), soldier.getSprite())) {
-			projectile.disabled();
-			hero.setHeroMove(true);
-			hero.enabled();
+			projectileDestroyed();
 		}
+		if (checkCollision(projectile.getSprite(), hero.getSprite())) {
+			projectileDestroyed();
+			printf("You killed yourself?!\n");
+		}
+
+		for (int i = 0; i < barriers.size(); i++) {
+			if (checkCollision(projectile.getSprite(), barriers[i]->getCollider())) {
+				projectileDestroyed();
+				if (barriers[i]->changeHealth(-1)) {
+					Barrier* tempBar = barriers[i];
+					barriers.erase(barriers.begin() + i);
+					delete(tempBar);
+				}
+				break;
+			}
+		}
+
 	}
 }
 
@@ -162,6 +183,8 @@ int main() {
 		draw();
 		window.display();
 	}
+
+	shutdown();
 
 	return 0;
 }
@@ -192,6 +215,14 @@ void shoot() {
 	hero.disabled();
 }
 /**
+ * @brief Sets parameters to indicate projectile is destroyed
+ */
+void projectileDestroyed() {
+	projectile.disabled();
+	hero.setHeroMove(true);
+	hero.enabled();
+}
+/**
  * @brief Checks if sprite1 collided with sprite2
  * 
  * @return true or false
@@ -204,4 +235,27 @@ bool checkCollision(sf::Sprite sprite1, sf::Sprite sprite2) {
 		return true;
 	else
 		return false;
+}
+/**
+ * @brief Checks if sprite1 collided with shape2
+ *
+ * @return true or false
+ */
+bool checkCollision(sf::Sprite sprite1, sf::FloatRect shape2) {
+	sf::FloatRect shape1 = sprite1.getGlobalBounds();
+
+	if (shape1.intersects(shape2))
+		return true;
+	else
+		return false;
+}
+/**
+ * @brief Frees up all space used in-game
+ */
+void shutdown() {
+	for (int i = 0; i < barriers.size(); i++) {
+		Barrier *tempBar = barriers[i];
+		barriers.erase(barriers.begin() + i);
+		delete(tempBar);
+	}
 }
