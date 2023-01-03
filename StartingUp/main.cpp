@@ -14,8 +14,10 @@ Ideas:
 Make the rocket have a limited time active
 Player can explode rocket before the limited time so they can move again
 Player is able to kill themselves with their rocket
+Have the player choose a fast normal rocket, and a somewhat fast guided rocket
 */
 
+void soldierSpawning();
 void movement(float xDirection);
 void shoot();
 void projectileDestroyed();
@@ -41,13 +43,18 @@ float heroMovement = 250.0f;
 /* Projectile parameters */
 Projectile projectile;
 sf::Vector2f projectileOffest(6.0f, -35.0f);
+sf::Vector2f projectileScale(0.8f, 0.5f);
 float startingRocketRotation = 270.0f;
 float rotationSpeed = 160.0f;
-float rocketSpeed = 350.0f;
+float rocketSpeed = 450.0f;
 /* Soldier parameters */
-Soldier soldier;
-sf::Vector2f soldierPosition(1024 / 2, 100);
-float soldierSpeed = 200.0f;
+std::vector<Soldier*> soldiers;
+sf::Vector2f soldierPosition(80, 50);
+sf::Vector2f soldierScale(0.4f, 0.4f);
+int totalSoldiers = 28;
+int soldierLimit = 7; //How many soldiers allowed in one line on the x-axis
+int solSpacing = 80;
+float soldierSpeed = 40.0f;
 float soldierRotation = 270.0f;
 /* Barrier parameters */
 std::vector<Barrier*> barriers;
@@ -73,10 +80,6 @@ void init() {
 	hero.setScale(sf::Vector2f(0.5f, 0.5f));
 	hero.changeRotation(heroRotation);
 	projectile.disabled();
-	soldier.init("Assets/Graphics/enemy.png", soldierPosition);
-	soldier.setSpeed(soldierSpeed);
-	soldier.changeRotation(soldierRotation);
-	soldier.setScale(sf::Vector2f(0.8f, 0.8f));
 
 	for (int i = 0; i < totalBarriers; i++) {
 		barriers.push_back(new Barrier());
@@ -87,6 +90,12 @@ void init() {
 									window.getSize().y - yBarrierOffset);
 		barriers[i]->init(barrierSize, startPosition, sf::Color::Red, barrierHealth);
 	}
+
+	for (int i = 0; i < totalSoldiers; i++) {
+		soldiers.push_back(new Soldier());
+	}
+
+	soldierSpawning();
 }
 
 void draw() {
@@ -95,7 +104,11 @@ void draw() {
 	window.draw(hero.getSprite());
 	if (projectile.getStatus())
 		window.draw(projectile.getSprite());
-	window.draw(soldier.getSprite());
+	//window.draw(soldier.getSprite());
+
+	for (int i = 0; i < soldiers.size(); i++) {
+		window.draw(soldiers[i]->getSprite());
+	}
 
 	for (int i = 0; i < barriers.size(); i++) {
 		barriers[i]->setColor();
@@ -134,17 +147,26 @@ void updateInput(float dt) {
 
 void update(float dt) {
 	hero.update(dt);
-	soldier.update(dt);
 
-	if(projectile.getStatus()) {
+	for (int i = 0; i < soldiers.size(); i++) {
+		soldiers[i]->update(dt);
+	}
+
+	if (projectile.getStatus()) {
 		projectile.update(dt);
 		hero.setMovement(0);
 		if (projectile.getOutofBounds()) {
 			projectileDestroyed();
 		}
 		//If projectile has collided with enemy soldier
-		if (checkCollision(projectile.getSprite(), soldier.getSprite())) {
-			projectileDestroyed();
+		for (int i = 0; i < soldiers.size(); i++) {
+			if (checkCollision(projectile.getSprite(), soldiers[i]->getSprite())) {
+				projectileDestroyed();
+				Soldier* tempSol = soldiers[i];
+				soldiers.erase(soldiers.begin() + i);
+				delete(tempSol);
+				break;
+			}
 		}
 		if (checkCollision(projectile.getSprite(), hero.getSprite())) {
 			projectileDestroyed();
@@ -189,6 +211,38 @@ int main() {
 	return 0;
 }
 /**
+ * @brief Spawns soldiers in a square/rectangle space
+ */
+void soldierSpawning() {
+	float startPosX = soldierPosition.x;
+	float startPosY = soldierPosition.y;
+	sf::Vector2f startPosition(startPosX, startPosY);
+
+	//This is to avoid k being incremented at the beginning as xPos would start at 0
+	soldiers[0]->init("Assets/Graphics/enemy.png", startPosition);
+	soldiers[0]->setSpeed(soldierSpeed);
+	soldiers[0]->changeRotation(soldierRotation);
+	soldiers[0]->setScale(soldierScale);
+
+	int k = 0;
+	int xPos;
+
+	for (int i = 1; i < soldiers.size(); i++) {
+		xPos = i % soldierLimit;
+		if (xPos == 0)
+			k++;
+		//Setting positions of soldiers in a square/rectangle-like space
+		startPosX = soldierPosition.x + (xPos * solSpacing);
+		startPosY = soldierPosition.y + (k * solSpacing);
+		startPosition = sf::Vector2f(startPosX, startPosY);
+
+		soldiers[i]->init("Assets/Graphics/enemy.png", startPosition);
+		soldiers[i]->setSpeed(soldierSpeed);
+		soldiers[i]->changeRotation(soldierRotation);
+		soldiers[i]->setScale(soldierScale);
+	}
+}
+/**
  * @brief Decides movement based on if the player/projectile is active
  * 
  * @param keyDirection negative number to go left, positive number to go right
@@ -211,6 +265,7 @@ void shoot() {
 	projectile.init("Assets/Graphics/rocket.png", projectilePosition);
 	projectile.changeRotation(startingRocketRotation);
 	projectile.setProjectileSpeed(rocketSpeed);
+	projectile.setScale(projectileScale);
 	hero.setHeroMove(false);
 	hero.disabled();
 }
@@ -253,9 +308,16 @@ bool checkCollision(sf::Sprite sprite1, sf::FloatRect shape2) {
  * @brief Frees up all space used in-game
  */
 void shutdown() {
+	//Frees barriers
 	for (int i = 0; i < barriers.size(); i++) {
 		Barrier *tempBar = barriers[i];
 		barriers.erase(barriers.begin() + i);
 		delete(tempBar);
+	}
+	//Frees soldiers
+	for (int i = 0; i < soldiers.size(); i++) {
+		Soldier* tempSol = soldiers[i];
+		soldiers.erase(soldiers.begin() + i);
+		delete(tempSol);
 	}
 }
