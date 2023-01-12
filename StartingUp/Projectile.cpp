@@ -6,20 +6,24 @@ Projectile::Projectile() {}
 Projectile::~Projectile() {}
 
 void Projectile::update(float dt) {
-	const float pi = 3.14159265f;
-	sf::Vector2i windowSize(1024, 768);
+	if (currentType == NORMAL) {
+		sf::Vector2f currentPosition(m_sprite.getPosition());
+		m_sprite.setPosition(currentPosition.x, currentPosition.y - (m_normalSpeed * dt));
+	}
+	else if (currentType == GUIDED) {
+		const float pi = 3.14159265f;
 
-	m_sprite.rotate(m_angleChange * dt);
+		m_sprite.rotate(m_angleChange * dt);
 
-	//Converting degrees to radians here
-	float x = cos(m_sprite.getRotation() * pi / 180.0f);
-	float y = sin(m_sprite.getRotation() * pi / 180.0f);
-	//Moves sprite based on rotation
-	m_sprite.move(x * m_projectileSpeed * dt, y * m_projectileSpeed * dt);
+		//Converting degrees to radians here
+		float x = cos(m_sprite.getRotation() * pi / 180.0f);
+		float y = sin(m_sprite.getRotation() * pi / 180.0f);
+		//Moves sprite based on rotation
+		m_sprite.move(x * m_guidedSpeed * dt, y * m_guidedSpeed * dt);
+		//printf("x:%lf\ty:%lf\n", m_sprite.getPosition().x, m_sprite.getPosition().y);
+	}
 
 	m_outOfBounds = checkOutOfBounds(m_sprite);
-
-	//printf("x:%lf\ty:%lf\n", m_sprite.getPosition().x, m_sprite.getPosition().y);
 }
 /**
  * @brief Rotates the projectile
@@ -28,10 +32,24 @@ void Projectile::setRotater(float angleChange) {
 	m_angleChange = angleChange;
 }
 /**
- * @brief Sets how fast the projectile will move
+ * @brief Sets how fast the guided projectile moves
  */
-void Projectile::setProjectileSpeed(float projectileSpeed) {
-	m_projectileSpeed = projectileSpeed;
+void Projectile::setGuidedSpeed(float projectileSpeed) {
+	m_guidedSpeed = projectileSpeed;
+}
+/**
+ * @brief Sets how fast the normal projectile moves
+ * 
+ * @param projectileSpeed
+ */
+void Projectile::setNormalSpeed(float projectileSpeed) {
+	m_normalSpeed = projectileSpeed;
+}
+/**
+ * @brief Sets position of the projectile
+ */
+void Projectile::setPosition(sf::Vector2f position) {
+	m_sprite.setPosition(position);
 }
 /**
  * @brief Disables status of projectile being active
@@ -46,6 +64,15 @@ void Projectile::disabled() {
 void Projectile::enabled() {
 	m_sprite.setColor(sf::Color::White);
 	m_status = true;
+}
+/**
+ * @brief Switches the type of rocket to use
+ */
+void Projectile::switchModes() {
+	int temp = ((int) currentType + 1) % 2;
+	currentType = (projectileType) temp;
+	//printf("temp: %d\n", temp);
+	printf("Mode is now: %s\n", temp == 1 ? "Guided" : "Normal");
 }
 /**
  * @brief Checks if the sprite is outside the window resolution

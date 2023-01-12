@@ -14,6 +14,11 @@ class Soldier : public Character
 public:
 	void update(float dt);
 	void setSpeed(float speed);
+	void changeDirection();
+	void moveDown();
+	void changeSpeed(float movementModification);
+	bool checkOutOfBound();
+
 private:
 	float m_movementSpeed = 0;
 };

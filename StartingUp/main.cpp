@@ -12,7 +12,6 @@ The game to make: can guide your missile, space invaders-like
 
 Ideas:
 Make the rocket have a limited time active
-Player can explode rocket before the limited time so they can move again
 Player is able to kill themselves with their rocket
 Have the player choose a fast normal rocket, and a somewhat fast guided rocket
 */
@@ -41,21 +40,23 @@ int yOffset = 75;
 float heroRotation = 270.0f;
 float heroMovement = 250.0f;
 /* Projectile parameters */
-Projectile projectile;
+Projectile projectile = Projectile();
 sf::Vector2f projectileOffest(6.0f, -35.0f);
 sf::Vector2f projectileScale(0.8f, 0.5f);
 float startingRocketRotation = 270.0f;
 float rotationSpeed = 160.0f;
-float rocketSpeed = 450.0f;
+float guidedRocketSpeed = 550.0f;
+float normalRocketSpeed = 1000.0f;
 /* Soldier parameters */
 std::vector<Soldier*> soldiers;
-sf::Vector2f soldierPosition(80, 50);
+sf::Vector2f soldierPosition(80, 30); //Position where first soldier will spawn
 sf::Vector2f soldierScale(0.4f, 0.4f);
-int totalSoldiers = 28;
-int soldierLimit = 7; //How many soldiers allowed in one line on the x-axis
-int solSpacing = 80;
-float soldierSpeed = 40.0f;
+int totalSoldiers = 40;
+int soldierLimit = 10; //How many soldiers allowed in one row
+int solSpacing = 80; //Spacing between soldiers when spawning
+float soldierSpeed = 10.0f;
 float soldierRotation = 270.0f;
+float soldierSpeedChange = 2.5f; //How fast soldiers become when allies killed
 /* Barrier parameters */
 std::vector<Barrier*> barriers;
 sf::Vector2f barrierSize(80.0f, 30.0f);
@@ -69,6 +70,7 @@ void initBindings() {
 	binds.storeBinding("Shoot", sf::Keyboard::Space);
 	binds.storeBinding("Left", sf::Keyboard::A);
 	binds.storeBinding("Right", sf::Keyboard::D);
+	binds.storeBinding("Switch", sf::Keyboard::S);
 }
 
 void init() {
@@ -79,6 +81,10 @@ void init() {
 	hero.init("Assets/Graphics/hero.png", heroPosition);
 	hero.setScale(sf::Vector2f(0.5f, 0.5f));
 	hero.changeRotation(heroRotation);
+	projectile.init("Assets/Graphics/rocket.png", sf::Vector2f(0, 0));
+	projectile.setGuidedSpeed(guidedRocketSpeed);
+	projectile.setNormalSpeed(normalRocketSpeed);
+	projectile.setScale(projectileScale);
 	projectile.disabled();
 
 	for (int i = 0; i < totalBarriers; i++) {
@@ -124,15 +130,19 @@ void updateInput(float dt) {
 		//Player bindings
 		if (binds.validBinding("Shoot", event) && !projectile.getStatus()) {
 			shoot();
-			printf("Shoot\n");
+			//printf("Shoot\n");
+		}
+		if (binds.validBinding("Switch", event) && !projectile.getStatus()) {
+			projectile.switchModes();
+			//printf("Switched!\n");
 		}
 		if (binds.validBinding("Left", event)) {
 			movement(-xDirection);
-			printf("Left\n");
+			//printf("Left\n");
 		}
 		else if (binds.validBinding("Right", event)) {
 			movement(xDirection);
-			printf("Right\n");
+			//printf("Right\n");
 		}
 
 		if (event.type == sf::Event::KeyReleased) {
@@ -146,10 +156,21 @@ void updateInput(float dt) {
 }
 
 void update(float dt) {
+	bool outOfBounds = false;
+	
 	hero.update(dt);
 
 	for (int i = 0; i < soldiers.size(); i++) {
 		soldiers[i]->update(dt);
+		if (soldiers[i]->checkOutOfBound())
+			outOfBounds = true;
+	}
+	//Changes all soldiers movement, and moves them down the screen
+	if (outOfBounds) {
+		for (int i = 0; i < soldiers.size(); i++) {
+			soldiers[i]->changeDirection();
+			soldiers[i]->moveDown();
+		}
 	}
 
 	if (projectile.getStatus()) {
@@ -165,6 +186,11 @@ void update(float dt) {
 				Soldier* tempSol = soldiers[i];
 				soldiers.erase(soldiers.begin() + i);
 				delete(tempSol);
+
+				for (int k = 0; k < soldiers.size(); k++) {
+					soldiers[k]->changeSpeed(soldierSpeedChange);
+				}
+
 				break;
 			}
 		}
@@ -172,7 +198,7 @@ void update(float dt) {
 			projectileDestroyed();
 			printf("You killed yourself?!\n");
 		}
-
+		//If projectile has collided with any barriers
 		for (int i = 0; i < barriers.size(); i++) {
 			if (checkCollision(projectile.getSprite(), barriers[i]->getCollider())) {
 				projectileDestroyed();
@@ -258,14 +284,13 @@ void movement(float keyDirection) {
  * @brief Creates a projectile object which the player will control manually
  */
 void shoot() {
-	projectile = Projectile();
 	sf::Vector2f projectilePosition(hero.getSprite().getPosition().x + projectileOffest.x,
 		hero.getSprite().getPosition().y + projectileOffest.y);
 
-	projectile.init("Assets/Graphics/rocket.png", projectilePosition);
+	projectile.enabled();
+	projectile.setPosition(projectilePosition);
 	projectile.changeRotation(startingRocketRotation);
-	projectile.setProjectileSpeed(rocketSpeed);
-	projectile.setScale(projectileScale);
+	projectile.setRotater(0); //Prevents projectile rotation without player's input on spawn
 	hero.setHeroMove(false);
 	hero.disabled();
 }
